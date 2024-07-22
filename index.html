@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Emotion Recognition</title>
+</head>
+<body>
+    <h1>Emotion Recognition from Speech</h1>
+    <button onclick="startRecording()">Start Recording</button>
+    <button onclick="stopRecording()">Stop Recording</button>
+    <p id="result"></p>
+    <script>
+        let mediaRecorder;
+        let audioChunks = [];
+
+        function startRecording() {
+            navigator.mediaDevices.getUserMedia({ audio: true })
+                .then(stream => {
+                    mediaRecorder = new MediaRecorder(stream);
+                    mediaRecorder.start();
+                    mediaRecorder.ondataavailable = event => {
+                        audioChunks.push(event.data);
+                    };
+                });
+        }
+
+        function stopRecording() {
+            mediaRecorder.stop();
+            mediaRecorder.onstop = () => {
+                const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                const formData = new FormData();
+                formData.append('file', audioBlob, 'audio.wav');
+
+                fetch('/predict', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('result').innerText = `Predicted Emotion: ${data.emotion}`;
+                });
+
+                audioChunks = [];
+            };
+        }
+    </script>
+</body>
+</html>
