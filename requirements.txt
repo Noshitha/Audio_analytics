@@ -1,0 +1,5 @@
+Flask
+librosa
+numpy
+scikit-learn
+pyaudio
